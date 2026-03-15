@@ -1149,439 +1149,440 @@
             Need 4+ players · all must be ready</div>
         </div>
       </div>
-      <div
-        style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text2);text-align:center;line-height:1.9;">
-        Share: <span style="color:var(--accent);">103.152.106.177</span> · <span
-          style="color:var(--accent);">192.168.0.122</span> · Port <span style="color:var(--accent4);">12350</span>
-      </div>
-    </div>
 
-    <!-- GAME -->
-    <div id="game">
-      <div class="game-header">
-        <div class="game-title">🎓 NSU Hustle &amp; Sabotage</div>
-        <div id="turn-indicator" class="turn-indicator not-your-turn">—</div>
-        <div class="score-badges">
-          <div class="score-badge deck">🃏 Deck: <span id="deck-count">—</span></div>
-          <div class="score-badge"
-            style="background:rgba(248,113,113,0.1);color:var(--bad);border:1px solid rgba(248,113,113,0.3);">🗑
-            Disposed: <span id="discard-total-count">0</span></div>
-          <div class="score-badge"
-            style="background:rgba(192,132,252,0.1);color:var(--wild);border:1px solid rgba(192,132,252,0.3);display:none;"
-            id="reshuffle-badge" title="Times discard was reshuffled back into the deck">♻️ Reshuffles: <span
-              id="reshuffle-count">0</span></div>
-          <div class="score-badge target">🏆 Target: <span id="win-target-game">—</span> locks</div>
+      <!-- GAME -->
+      <div id="game">
+        <div class="game-header">
+          <div class="game-title">🎓 NSU Hustle &amp; Sabotage</div>
+          <div id="turn-indicator" class="turn-indicator not-your-turn">—</div>
+          <div class="score-badges">
+            <div class="score-badge deck">🃏 Deck: <span id="deck-count">—</span></div>
+            <div class="score-badge"
+              style="background:rgba(248,113,113,0.1);color:var(--bad);border:1px solid rgba(248,113,113,0.3);">🗑
+              Disposed: <span id="discard-total-count">0</span></div>
+            <div class="score-badge"
+              style="background:rgba(192,132,252,0.1);color:var(--wild);border:1px solid rgba(192,132,252,0.3);display:none;"
+              id="reshuffle-badge" title="Times discard was reshuffled back into the deck">♻️ Reshuffles: <span
+                id="reshuffle-count">0</span></div>
+            <div class="score-badge target">🏆 Target: <span id="win-target-game">—</span> locks</div>
+          </div>
+          <div style="display:flex;gap:0.4rem;">
+            <button class="btn btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;margin-top:0;"
+              onclick="showRulesModal()">📖 Rules</button>
+            <button class="btn btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;margin-top:0;"
+              onclick="showExitModal()">🚪 Exit</button>
+          </div>
         </div>
-        <div style="display:flex;gap:0.4rem;">
-          <button class="btn btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;margin-top:0;"
-            onclick="showRulesModal()">📖 Rules</button>
-          <button class="btn btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;margin-top:0;"
-            onclick="showExitModal()">🚪 Exit</button>
-        </div>
-      </div>
 
-      <!-- All players' desks -->
-      <div class="desks-grid" id="desks-grid"></div>
+        <!-- All players' desks -->
+        <div class="desks-grid" id="desks-grid"></div>
 
-      <div class="main-row">
-        <div>
-          <div class="hand-area">
-            <div class="hand-title">
-              <span>Your Hand</span>
-              <span id="hand-count-label" style="color:var(--text2);"></span>
+        <div class="main-row">
+          <div>
+            <div class="hand-area">
+              <div class="hand-title">
+                <span>Your Hand</span>
+                <span id="hand-count-label" style="color:var(--text2);"></span>
+              </div>
+              <div style="font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--text2);margin-bottom:0.6rem;">
+                <span style="color:var(--good);">Good</span> → play on <b>your desk</b> &nbsp;·&nbsp;
+                <span style="color:var(--bad);">Bad / Nuke</span> → attack an <b>opponent's desk</b> &nbsp;·&nbsp;
+                <span style="color:var(--wild);">Wild</span> → see card description
+              </div>
+              <div id="discard-notice" class="discard-notice" style="display:none;"></div>
+              <div class="cards-grid" id="hand-cards"></div>
+              <div class="action-bar" id="action-bar"></div>
             </div>
-            <div style="font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--text2);margin-bottom:0.6rem;">
-              <span style="color:var(--good);">Good</span> → play on <b>your desk</b> &nbsp;·&nbsp;
-              <span style="color:var(--bad);">Bad / Nuke</span> → attack an <b>opponent's desk</b> &nbsp;·&nbsp;
-              <span style="color:var(--wild);">Wild</span> → see card description
+            <div class="log-area">
+              <div class="log-title">Game Log</div>
+              <div class="log-entries" id="log-entries"></div>
             </div>
-            <div id="discard-notice" class="discard-notice" style="display:none;"></div>
-            <div class="cards-grid" id="hand-cards"></div>
-            <div class="action-bar" id="action-bar"></div>
           </div>
-          <div class="log-area">
-            <div class="log-title">Game Log</div>
-            <div class="log-entries" id="log-entries"></div>
-          </div>
-        </div>
 
-        <!-- Scoreboard sidebar -->
-        <div class="sidebar">
-          <div class="sidebar-card">
-            <div class="sidebar-title">Scoreboard</div>
-            <div id="players-list"></div>
+          <!-- Scoreboard sidebar -->
+          <div class="sidebar">
+            <div class="sidebar-card">
+              <div class="sidebar-title">Scoreboard</div>
+              <div id="players-list"></div>
+            </div>
           </div>
-        </div>
 
-        <!-- Chat -->
-        <div id="chat-column">
-          <div class="chat-card">
-            <div class="sidebar-title">💬 Group Chat</div>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="chat-input-row">
-              <input type="text" id="chat-input" placeholder="Type a message…" maxlength="200" />
-              <button class="chat-send-btn" onclick="sendChat()">Send</button>
+          <!-- Chat -->
+          <div id="chat-column">
+            <div class="chat-card">
+              <div class="sidebar-title">💬 Group Chat</div>
+              <div class="chat-messages" id="chat-messages"></div>
+              <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="Type a message…" maxlength="200" />
+                <button class="chat-send-btn" onclick="sendChat()">Send</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Win Screen -->
-    <div id="win-screen">
-      <div style="font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text2);">🏆 Ultimate NSU Hustler</div>
-      <div class="win-title" id="win-title"></div>
-      <div class="win-scores" id="win-scores"></div>
-      <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:center;">
-        <button class="btn btn-primary" style="min-width:180px;margin-top:0;" onclick="playAgain()">🔁 Play
-          Again</button>
-        <button class="btn btn-ghost" style="min-width:180px;margin-top:0;" onclick="returnToLobby()">🚪 Return to
-          Lobby</button>
-      </div>
-    </div>
-
-    <!-- Shield Popup (out-of-turn block) -->
-    <div id="shield-popup" style="display:none;">
-      <div class="sp-title">⚔️ You're under attack!</div>
-      <div class="sp-msg" id="shield-msg">Someone is attacking your desk.</div>
-      <div class="sp-btns">
-        <button class="btn btn-primary" id="shield-yes-btn" onclick="useShield()" style="background:var(--accent);">🛡️
-          Block It!</button>
-        <button class="btn btn-ghost" onclick="declineShield()">Take the hit</button>
-      </div>
-    </div>
-
-    <!-- Dean's Office Modal -->
-    <div class="modal-bg" id="dean-modal" style="display:none;">
-      <div class="modal">
-        <div class="modal-title">🏛️ Dean's Office</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);margin-bottom:0.9rem;">Pick one
-          card to keep. The rest go back in any order.</div>
-        <div class="modal-cards" id="dean-modal-cards"></div>
-        <button class="btn btn-ghost" style="width:100%;margin-top:0;" onclick="closeDeanModal()">Cancel</button>
-      </div>
-    </div>
-
-    <!-- Target Player Modal (for Bad/Nuke/Drama) -->
-    <div class="modal-bg" id="target-modal" style="display:none;">
-      <div class="modal">
-        <div class="modal-title" id="target-modal-title">⚔️ Choose Target</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);margin-bottom:0.9rem;"
-          id="target-modal-desc"></div>
-        <div id="target-list"></div>
-        <button class="btn btn-ghost" style="width:100%;margin-top:0.2rem;" onclick="closeTargetModal()">Cancel</button>
-      </div>
-    </div>
-
-    <!-- Exit Confirm Modal -->
-    <div class="modal-bg" id="exit-modal" style="display:none;">
-      <div class="modal">
-        <div class="modal-title" style="color:var(--accent2);">🚪 Leave Game?</div>
-        <p
-          style="font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--text2);margin-bottom:1.2rem;line-height:1.6;">
-          You'll be removed and returned to the lobby. The game continues.</p>
-        <div class="modal-btns">
-          <button class="btn btn-danger" onclick="confirmExit()">Yes, Leave</button>
-          <button class="btn btn-ghost" onclick="closeExitModal()">Stay In</button>
+      <!-- Win Screen -->
+      <div id="win-screen">
+        <div style="font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--text2);">🏆 Ultimate NSU Hustler</div>
+        <div class="win-title" id="win-title"></div>
+        <div class="win-scores" id="win-scores"></div>
+        <div style="display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:center;">
+          <button class="btn btn-primary" style="min-width:180px;margin-top:0;" onclick="playAgain()">🔁 Play
+            Again</button>
+          <button class="btn btn-ghost" style="min-width:180px;margin-top:0;" onclick="returnToLobby()">🚪 Return to
+            Lobby</button>
         </div>
       </div>
-    </div>
 
-    <!-- Rules Modal -->
-    <div class="modal-bg" id="rules-modal" style="display:none;" onclick="if(event.target===this)closeRulesModal()">
-      <div class="modal">
-        <div class="modal-title">📖 How to Play</div>
-        <div class="rules-section">
-          <div class="rules-section-title">🎯 Win Condition</div>
-          <div class="rules-row">
-            <div class="rules-icon">🏆</div>
-            <div class="rules-text"><b>4–6 players:</b> First to lock <b>3 projects</b> wins. <b>7–10 players:</b> First
-              to lock <b>2 projects</b> wins.</div>
-          </div>
-          <div class="rules-row">
-            <div class="rules-icon">♾️</div>
-            <div class="rules-text"><b>Endless Semester Rule:</b> When the deck drops below 3 cards it reshuffles from
-              the
-              discard pile. No deck-empty loss!</div>
+      <!-- Shield Popup (out-of-turn block) -->
+      <div id="shield-popup" style="display:none;">
+        <div class="sp-title">⚔️ You're under attack!</div>
+        <div class="sp-msg" id="shield-msg">Someone is attacking your desk.</div>
+        <div class="sp-btns">
+          <button class="btn btn-primary" id="shield-yes-btn" onclick="useShield()"
+            style="background:var(--accent);">🛡️
+            Block It!</button>
+          <button class="btn btn-ghost" onclick="declineShield()">Take the hit</button>
+        </div>
+      </div>
+
+      <!-- Dean's Office Modal -->
+      <div class="modal-bg" id="dean-modal" style="display:none;">
+        <div class="modal">
+          <div class="modal-title">🏛️ Dean's Office</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);margin-bottom:0.9rem;">Pick
+            one
+            card to keep. The rest go back in any order.</div>
+          <div class="modal-cards" id="dean-modal-cards"></div>
+          <button class="btn btn-ghost" style="width:100%;margin-top:0;" onclick="closeDeanModal()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Target Player Modal (for Bad/Nuke/Drama) -->
+      <div class="modal-bg" id="target-modal" style="display:none;">
+        <div class="modal">
+          <div class="modal-title" id="target-modal-title">⚔️ Choose Target</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);margin-bottom:0.9rem;"
+            id="target-modal-desc"></div>
+          <div id="target-list"></div>
+          <button class="btn btn-ghost" style="width:100%;margin-top:0.2rem;"
+            onclick="closeTargetModal()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Exit Confirm Modal -->
+      <div class="modal-bg" id="exit-modal" style="display:none;">
+        <div class="modal">
+          <div class="modal-title" style="color:var(--accent2);">🚪 Leave Game?</div>
+          <p
+            style="font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--text2);margin-bottom:1.2rem;line-height:1.6;">
+            You'll be removed and returned to the lobby. The game continues.</p>
+          <div class="modal-btns">
+            <button class="btn btn-danger" onclick="confirmExit()">Yes, Leave</button>
+            <button class="btn btn-ghost" onclick="closeExitModal()">Stay In</button>
           </div>
         </div>
-        <div class="rules-section">
-          <div class="rules-section-title">🔄 Your Turn (3 Steps)</div>
-          <div class="turn-step">
-            <div class="step-num">1</div>
-            <div class="step-text"><b>Draw</b> 2 cards from the deck.</div>
-          </div>
-          <div class="turn-step">
-            <div class="step-num">2</div>
-            <div class="step-text"><b>Play at least 1 card</b> (up to 2). You cannot pass.</div>
-          </div>
-          <div class="turn-step">
-            <div class="step-num">3</div>
-            <div class="step-text"><b>Discard</b> down to 5 cards max.</div>
-          </div>
-        </div>
-        <div class="rules-section">
-          <div class="rules-section-title">🗂 Your Desk</div>
-          <div class="rules-row">
-            <div class="rules-icon">✅</div>
-            <div class="rules-text"><b>Build:</b> Play a <span class="rules-card-pill good">Good</span> card on your own
-              desk (+1). 3 Good cards = Project Locked!</div>
-          </div>
-          <div class="rules-row">
-            <div class="rules-icon">🔒</div>
-            <div class="rules-text"><b>Lock:</b> Scored project — permanently safe. Desk clears for your next project.
+      </div>
+
+      <!-- Rules Modal -->
+      <div class="modal-bg" id="rules-modal" style="display:none;" onclick="if(event.target===this)closeRulesModal()">
+        <div class="modal">
+          <div class="modal-title">📖 How to Play</div>
+          <div class="rules-section">
+            <div class="rules-section-title">🎯 Win Condition</div>
+            <div class="rules-row">
+              <div class="rules-icon">🏆</div>
+              <div class="rules-text"><b>4–6 players:</b> First to lock <b>3 projects</b> wins. <b>7–10 players:</b>
+                First
+                to lock <b>2 projects</b> wins.</div>
             </div>
-          </div>
-          <div class="rules-row">
-            <div class="rules-icon">❌</div>
-            <div class="rules-text"><b>Sabotage:</b> Play a <span class="rules-card-pill bad">Bad</span> card on an
-              opponent's desk to remove 1 Good card.</div>
+            <div class="rules-row">
+              <div class="rules-icon">♾️</div>
+              <div class="rules-text"><b>Endless Semester Rule:</b> When the deck drops below 3 cards it reshuffles from
+                the
+                discard pile. No deck-empty loss!</div>
+            </div>
           </div>
           <div class="rules-section">
-            <div class="rules-section-title">🌪 Wild Cards</div>
-            <div class="rules-row">
-              <div class="rules-icon">🛡️</div>
-              <div class="rules-text"><span class="rules-card-pill wild">Miracle Rescheduling</span> <b>Out-of-turn
-                  shield!</b> When attacked, click "Block It" to cancel the attack. Or use on your turn to recover 1
-                Good
-                card.</div>
+            <div class="rules-section-title">🔄 Your Turn (3 Steps)</div>
+            <div class="turn-step">
+              <div class="step-num">1</div>
+              <div class="step-text"><b>Draw</b> 2 cards from the deck.</div>
             </div>
-            <div class="rules-row">
-              <div class="rules-icon">💣</div>
-              <div class="rules-text"><span class="rules-card-pill wild">Flaked Last Minute</span> <b>Nuke.</b> Pick an
-                opponent — ALL their Good cards are swept away instantly.</div>
+            <div class="turn-step">
+              <div class="step-num">2</div>
+              <div class="step-text"><b>Play at least 1 card</b> (up to 2). You cannot pass.</div>
             </div>
-            <div class="rules-row">
-              <div class="rules-icon">🌐</div>
-              <div class="rules-text"><span class="rules-card-pill wild">The Networker</span> <b>+2 on your desk.</b>
-                Counts as 2 Good cards at once.</div>
-            </div>
-            <div class="rules-row">
-              <div class="rules-icon">🔥</div>
-              <div class="rules-text"><span class="rules-card-pill wild">Group Chat Drama</span> <b>Pick any player</b>
-                —
-                they discard their hand and redraw.</div>
-            </div>
-            <div class="rules-row">
-              <div class="rules-icon">☕</div>
-              <div class="rules-text"><span class="rules-card-pill wild">Coffee Run</span> <b>Draw 3 extra cards</b>
-                immediately.</div>
-            </div>
-            <div class="rules-row">
-              <div class="rules-icon">🏛️</div>
-              <div class="rules-text"><span class="rules-card-pill wild">Dean's Office</span> <b>Peek top 5 cards,</b>
-                keep 1, return rest in any order.</div>
+            <div class="turn-step">
+              <div class="step-num">3</div>
+              <div class="step-text"><b>Discard</b> down to 5 cards max.</div>
             </div>
           </div>
-          <button class="btn btn-ghost" style="width:100%;margin-top:0.9rem;" onclick="closeRulesModal()">Got it
-            ✓</button>
+          <div class="rules-section">
+            <div class="rules-section-title">🗂 Your Desk</div>
+            <div class="rules-row">
+              <div class="rules-icon">✅</div>
+              <div class="rules-text"><b>Build:</b> Play a <span class="rules-card-pill good">Good</span> card on your
+                own
+                desk (+1). 3 Good cards = Project Locked!</div>
+            </div>
+            <div class="rules-row">
+              <div class="rules-icon">🔒</div>
+              <div class="rules-text"><b>Lock:</b> Scored project — permanently safe. Desk clears for your next project.
+              </div>
+            </div>
+            <div class="rules-row">
+              <div class="rules-icon">❌</div>
+              <div class="rules-text"><b>Sabotage:</b> Play a <span class="rules-card-pill bad">Bad</span> card on an
+                opponent's desk to remove 1 Good card.</div>
+            </div>
+            <div class="rules-section">
+              <div class="rules-section-title">🌪 Wild Cards</div>
+              <div class="rules-row">
+                <div class="rules-icon">🛡️</div>
+                <div class="rules-text"><span class="rules-card-pill wild">Miracle Rescheduling</span> <b>Out-of-turn
+                    shield!</b> When attacked, click "Block It" to cancel the attack. Or use on your turn to recover 1
+                  Good
+                  card.</div>
+              </div>
+              <div class="rules-row">
+                <div class="rules-icon">💣</div>
+                <div class="rules-text"><span class="rules-card-pill wild">Flaked Last Minute</span> <b>Nuke.</b> Pick
+                  an
+                  opponent — ALL their Good cards are swept away instantly.</div>
+              </div>
+              <div class="rules-row">
+                <div class="rules-icon">🌐</div>
+                <div class="rules-text"><span class="rules-card-pill wild">The Networker</span> <b>+2 on your desk.</b>
+                  Counts as 2 Good cards at once.</div>
+              </div>
+              <div class="rules-row">
+                <div class="rules-icon">🔥</div>
+                <div class="rules-text"><span class="rules-card-pill wild">Group Chat Drama</span> <b>Pick any
+                    player</b>
+                  —
+                  they discard their hand and redraw.</div>
+              </div>
+              <div class="rules-row">
+                <div class="rules-icon">☕</div>
+                <div class="rules-text"><span class="rules-card-pill wild">Coffee Run</span> <b>Draw 3 extra cards</b>
+                  immediately.</div>
+              </div>
+              <div class="rules-row">
+                <div class="rules-icon">🏛️</div>
+                <div class="rules-text"><span class="rules-card-pill wild">Dean's Office</span> <b>Peek top 5 cards,</b>
+                  keep 1, return rest in any order.</div>
+              </div>
+            </div>
+            <button class="btn btn-ghost" style="width:100%;margin-top:0.9rem;" onclick="closeRulesModal()">Got it
+              ✓</button>
+          </div>
         </div>
-      </div>
 
-    </div><!-- #app -->
-    <script>
-      const WS_URL = "ws://" + location.hostname + ":12350";
-      let ws = null, myName = null, gameState = null;
-      let selectedCardIdx = null, pendingTargetAction = null;
-      let myReady = false;
+      </div><!-- #app -->
+      <script>
+        const WS_URL = "ws://" + location.hostname + ":12350";
+        let ws = null, myName = null, gameState = null;
+        let selectedCardIdx = null, pendingTargetAction = null;
+        let myReady = false;
 
-      const WILD_DESC = {
-        "Miracle Rescheduling": "Out-of-turn shield vs attacks · or recover 1 Good card on your turn",
-        "Flaked Last Minute": "Pick opponent → nuke their ENTIRE desk (all Good cards gone)",
-        "The Networker": "+2 Good cards on your own desk at once",
-        "Group Chat Drama": "Pick any player → they discard hand and redraw",
-        "Coffee Run": "Immediately draw 3 extra cards from the deck",
-        "Dean's Office": "Peek top 5 cards of deck, keep 1, return rest",
-      };
-
-      function connectWS(url) {
-        ws = new WebSocket(url);
-        ws.onopen = () => {
-          document.getElementById('conn-dot').className = 'conn-dot connected';
-          document.getElementById('conn-status').innerHTML = '<span class="conn-dot connected"></span> Connected';
+        const WILD_DESC = {
+          "Miracle Rescheduling": "Out-of-turn shield vs attacks · or recover 1 Good card on your turn",
+          "Flaked Last Minute": "Pick opponent → nuke their ENTIRE desk (all Good cards gone)",
+          "The Networker": "+2 Good cards on your own desk at once",
+          "Group Chat Drama": "Pick any player → they discard hand and redraw",
+          "Coffee Run": "Immediately draw 3 extra cards from the deck",
+          "Dean's Office": "Peek top 5 cards of deck, keep 1, return rest",
         };
-        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
-        ws.onclose = () => {
-          document.getElementById('conn-dot').className = 'conn-dot disconnected';
-          document.getElementById('conn-status').innerHTML = '<span class="conn-dot disconnected"></span> Disconnected — <a href="#" onclick="location.reload()" style="color:var(--accent)">Reconnect</a>';
-          setTimeout(() => connectWS(url), 3000);
-        };
-        ws.onerror = () => { };
-      }
-      connectWS(WS_URL);
-      function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
 
-      function handleMessage(msg) {
-        if (msg.type === 'error') {
-          const el = document.getElementById('error-msg');
-          if (el) { el.textContent = msg.msg; setTimeout(() => el.textContent = '', 4000); }
-          return;
+        function connectWS(url) {
+          ws = new WebSocket(url);
+          ws.onopen = () => {
+            document.getElementById('conn-dot').className = 'conn-dot connected';
+            document.getElementById('conn-status').innerHTML = '<span class="conn-dot connected"></span> Connected';
+          };
+          ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
+          ws.onclose = () => {
+            document.getElementById('conn-dot').className = 'conn-dot disconnected';
+            document.getElementById('conn-status').innerHTML = '<span class="conn-dot disconnected"></span> Disconnected — <a href="#" onclick="location.reload()" style="color:var(--accent)">Reconnect</a>';
+            setTimeout(() => connectWS(url), 3000);
+          };
+          ws.onerror = () => { };
         }
-        if (msg.type === 'joined') {
-          myName = msg.name; myReady = false;
-          document.getElementById('join-section').style.display = 'none';
-          document.getElementById('lobby-section').style.display = 'block';
-          document.getElementById('lobby-you').textContent = `You: ${myName}`;
-          return;
-        }
-        if (msg.type === 'lobby_update') { renderLobby(msg); return; }
-        if (msg.type === 'game_started') {
-          document.getElementById('lobby').style.display = 'none';
-          document.getElementById('game').style.display = 'block';
-          document.getElementById('win-screen').style.display = 'none';
-          document.getElementById('shield-popup').style.display = 'none';
-          selectedCardIdx = null; pendingTargetAction = null;
-          addChatSystem('🎮 Game started! May the best hustler win.');
-          return;
-        }
-        if (msg.type === 'state_update') { gameState = msg.state; renderGame(); return; }
-        if (msg.type === 'dean_cards') { showDeanModal(msg.cards); return; }
-        if (msg.type === 'chat') { addChatMsg(msg.sender, msg.text); return; }
-        if (msg.type === 'return_to_lobby') { goToLobby(); return; }
-        if (msg.type === 'kicked') { goToLobby(); addChatSystem('⛔ You were kicked.'); return; }
-        if (msg.type === 'game_ended') { goToLobby(); addChatSystem('🏁 Game ended.'); return; }
-        if (msg.type === 'shield_opportunity') {
-          const isNuke = msg.is_nuke;
-          document.getElementById('shield-msg').textContent =
-            isNuke
-              ? `💣 ${msg.attacker} launched a NUKE at your desk! Use Miracle Rescheduling to block?`
-              : `⚔️ ${msg.attacker} is sabotaging your desk! Use Miracle Rescheduling to block?`;
-          document.getElementById('shield-popup').style.display = 'block';
-          return;
-        }
-      }
+        connectWS(WS_URL);
+        function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
 
-      // ── Lobby ───────────────────────────────────────────────────────────────────
-      function renderLobby(msg) {
-        const players = msg.players || [];
-        const me = players.find(p => p.name === myName);
-        if (me) myReady = me.ready;
-        document.getElementById('ready-list').innerHTML = players.map(p => {
-          const isMe = p.name === myName;
-          return `<div class="ready-row">
+        function handleMessage(msg) {
+          if (msg.type === 'error') {
+            const el = document.getElementById('error-msg');
+            if (el) { el.textContent = msg.msg; setTimeout(() => el.textContent = '', 4000); }
+            return;
+          }
+          if (msg.type === 'joined') {
+            myName = msg.name; myReady = false;
+            document.getElementById('join-section').style.display = 'none';
+            document.getElementById('lobby-section').style.display = 'block';
+            document.getElementById('lobby-you').textContent = `You: ${myName}`;
+            return;
+          }
+          if (msg.type === 'lobby_update') { renderLobby(msg); return; }
+          if (msg.type === 'game_started') {
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('win-screen').style.display = 'none';
+            document.getElementById('shield-popup').style.display = 'none';
+            selectedCardIdx = null; pendingTargetAction = null;
+            addChatSystem('🎮 Game started! May the best hustler win.');
+            return;
+          }
+          if (msg.type === 'state_update') { gameState = msg.state; renderGame(); return; }
+          if (msg.type === 'dean_cards') { showDeanModal(msg.cards); return; }
+          if (msg.type === 'chat') { addChatMsg(msg.sender, msg.text); return; }
+          if (msg.type === 'return_to_lobby') { goToLobby(); return; }
+          if (msg.type === 'kicked') { goToLobby(); addChatSystem('⛔ You were kicked.'); return; }
+          if (msg.type === 'game_ended') { goToLobby(); addChatSystem('🏁 Game ended.'); return; }
+          if (msg.type === 'shield_opportunity') {
+            const isNuke = msg.is_nuke;
+            document.getElementById('shield-msg').textContent =
+              isNuke
+                ? `💣 ${msg.attacker} launched a NUKE at your desk! Use Miracle Rescheduling to block?`
+                : `⚔️ ${msg.attacker} is sabotaging your desk! Use Miracle Rescheduling to block?`;
+            document.getElementById('shield-popup').style.display = 'block';
+            return;
+          }
+        }
+
+        // ── Lobby ───────────────────────────────────────────────────────────────────
+        function renderLobby(msg) {
+          const players = msg.players || [];
+          const me = players.find(p => p.name === myName);
+          if (me) myReady = me.ready;
+          document.getElementById('ready-list').innerHTML = players.map(p => {
+            const isMe = p.name === myName;
+            return `<div class="ready-row">
       <span style="color:var(--text)">${escHtml(p.name)}${isMe ? ' <span style="color:var(--text2);font-size:0.68rem;">(you)</span>' : ''}</span>
       <span class="ready-badge ${p.ready ? 'yes' : 'no'}">${p.ready ? '✓ Ready' : 'Not ready'}</span>
     </div>`;
-        }).join('');
-        const readyCount = players.filter(p => p.ready).length;
-        document.getElementById('ready-progress').textContent =
-          players.length >= 4 ? `${readyCount} / ${players.length} ready` : `Need ${4 - players.length} more player(s)…`;
-        const rb = document.getElementById('ready-btn');
-        rb.className = myReady ? 'btn btn-ready is-ready' : 'btn btn-ready';
-        rb.textContent = myReady ? '✅ Ready! (click to unready)' : '✋ Click to Ready Up';
-        document.getElementById('game-in-progress-notice').style.display = msg.game_active ? 'block' : 'none';
-        document.getElementById('start-btn').disabled = !msg.all_ready || msg.game_active;
-        // Win target hint
-        const n = players.length;
-        document.getElementById('win-target-lobby').textContent = n >= 7 ? '2' : '3';
-      }
-
-      function toggleReady() { send({ action: 'toggle_ready' }); }
-      function joinGame() {
-        const name = document.getElementById('nick-input').value.trim();
-        document.getElementById('error-msg').textContent = '';
-        if (!name) { document.getElementById('error-msg').textContent = 'Enter a nickname!'; return; }
-        send({ action: 'join', name });
-      }
-      function startGame() { send({ action: 'start_game' }); }
-      document.getElementById('nick-input').addEventListener('keydown', e => { if (e.key === 'Enter') joinGame(); });
-
-      // ── Chat ────────────────────────────────────────────────────────────────────
-      function sendChat() {
-        const inp = document.getElementById('chat-input');
-        const t = inp.value.trim(); if (!t) return;
-        send({ action: 'chat', text: t }); inp.value = '';
-      }
-      document.addEventListener('DOMContentLoaded', () => {
-        const ci = document.getElementById('chat-input');
-        if (ci) ci.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
-      });
-      function addChatMsg(sender, text) {
-        const box = document.getElementById('chat-messages'); if (!box) return;
-        const d = document.createElement('div');
-        d.className = `chat-msg ${sender === myName ? 'mine' : 'other'}`;
-        d.innerHTML = `<span class="chat-sender">${escHtml(sender)}:</span>${escHtml(text)}`;
-        box.appendChild(d); box.scrollTop = box.scrollHeight;
-      }
-      function addChatSystem(t) {
-        const box = document.getElementById('chat-messages'); if (!box) return;
-        const d = document.createElement('div'); d.className = 'chat-msg system'; d.textContent = t;
-        box.appendChild(d); box.scrollTop = box.scrollHeight;
-      }
-
-      // ── Shield ──────────────────────────────────────────────────────────────────
-      function useShield() {
-        document.getElementById('shield-popup').style.display = 'none';
-        send({ action: 'play_shield' });
-      }
-      function declineShield() {
-        document.getElementById('shield-popup').style.display = 'none';
-        send({ action: 'decline_shield' });
-      }
-
-      // ── Exit / lobby ─────────────────────────────────────────────────────────────
-      function showExitModal() { document.getElementById('exit-modal').style.display = 'flex'; }
-      function closeExitModal() { document.getElementById('exit-modal').style.display = 'none'; }
-      function confirmExit() { closeExitModal(); send({ action: 'exit_to_lobby' }); }
-      function playAgain() {
-        document.getElementById('win-screen').style.display = 'none';
-        send({ action: 'replay_game' });
-      }
-      function returnToLobby() { send({ action: 'exit_to_lobby' }); }
-      function showRulesModal() { document.getElementById('rules-modal').style.display = 'flex'; }
-      function closeRulesModal() { document.getElementById('rules-modal').style.display = 'none'; }
-      function goToLobby() {
-        document.getElementById('game').style.display = 'none';
-        document.getElementById('win-screen').style.display = 'none';
-        document.getElementById('lobby').style.display = 'flex';
-        document.getElementById('shield-popup').style.display = 'none';
-        gameState = null; selectedCardIdx = null; pendingTargetAction = null; myReady = false;
-        const rb = document.getElementById('ready-btn');
-        if (rb) { rb.className = 'btn btn-ready'; rb.textContent = '✋ Click to Ready Up'; }
-      }
-
-      // ── Render game ──────────────────────────────────────────────────────────────
-      function renderGame() {
-        const gs = gameState; if (!gs) return;
-        const isMyTurn = gs.current_player === myName;
-        const curPlayer = gs.players.find(p => p.name === myName);
-
-        document.getElementById('deck-count').textContent = gs.deck_count;
-        document.getElementById('discard-total-count').textContent = gs.cards_discarded ?? 0;
-        document.getElementById('reshuffle-count').textContent = gs.reshuffle_count ?? 0;
-        const reshuffleBadge = document.getElementById('reshuffle-badge');
-        if (reshuffleBadge) reshuffleBadge.style.display = (gs.reshuffle_count > 0) ? '' : 'none';
-        document.getElementById('win-target-game').textContent = gs.win_target;
-
-        const ti = document.getElementById('turn-indicator');
-        if (isMyTurn) {
-          ti.className = 'turn-indicator';
-          ti.textContent = `Your Turn${curPlayer?.has_drawn ? ` · ${curPlayer.plays_left} plays left` : ' · Draw first'}`;
-        } else {
-          ti.className = 'turn-indicator not-your-turn';
-          ti.textContent = `${gs.current_player}'s Turn`;
+          }).join('');
+          const readyCount = players.filter(p => p.ready).length;
+          document.getElementById('ready-progress').textContent =
+            players.length >= 4 ? `${readyCount} / ${players.length} ready` : `Need ${4 - players.length} more player(s)…`;
+          const rb = document.getElementById('ready-btn');
+          rb.className = myReady ? 'btn btn-ready is-ready' : 'btn btn-ready';
+          rb.textContent = myReady ? '✅ Ready! (click to unready)' : '✋ Click to Ready Up';
+          document.getElementById('game-in-progress-notice').style.display = msg.game_active ? 'block' : 'none';
+          document.getElementById('start-btn').disabled = !msg.all_ready || msg.game_active;
+          // Win target hint
+          const n = players.length;
+          document.getElementById('win-target-lobby').textContent = n >= 7 ? '2' : '3';
         }
 
-        // Desks
-        const needsTarget = selectedCardIdx !== null && curPlayer && (() => {
-          const hand = curPlayer.hand || [];
-          const card = hand[selectedCardIdx];
-          return card && (card.type === 'Bad' || card.name === 'Flaked Last Minute' || card.name === 'Group Chat Drama');
-        })();
+        function toggleReady() { send({ action: 'toggle_ready' }); }
+        function joinGame() {
+          const name = document.getElementById('nick-input').value.trim();
+          document.getElementById('error-msg').textContent = '';
+          if (!name) { document.getElementById('error-msg').textContent = 'Enter a nickname!'; return; }
+          send({ action: 'join', name });
+        }
+        function startGame() { send({ action: 'start_game' }); }
+        document.getElementById('nick-input').addEventListener('keydown', e => { if (e.key === 'Enter') joinGame(); });
 
-        document.getElementById('desks-grid').innerHTML = gs.players.map(p => {
-          const isMe = p.name === myName;
-          const desk = p.desk;
-          const isLocked = desk.status === 'Locked';
-          const isTarget = needsTarget && !isMe;
-          const pips = [0, 1, 2].map(j => {
-            let cls = 'pip';
-            if (j < desk.good) cls += isLocked ? ' locked-pip' : ' filled';
-            return `<div class="${cls}"></div>`;
-          }).join('');
-          const maxScore = Math.max(...gs.players.map(x => x.locked_count));
-          const isLeading = p.locked_count > 0 && p.locked_count === maxScore;
-          return `<div class="desk-card${isMe ? ' mine' : ''}${isTarget ? ' targetable' : ''}"
+        // ── Chat ────────────────────────────────────────────────────────────────────
+        function sendChat() {
+          const inp = document.getElementById('chat-input');
+          const t = inp.value.trim(); if (!t) return;
+          send({ action: 'chat', text: t }); inp.value = '';
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+          const ci = document.getElementById('chat-input');
+          if (ci) ci.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+        });
+        function addChatMsg(sender, text) {
+          const box = document.getElementById('chat-messages'); if (!box) return;
+          const d = document.createElement('div');
+          d.className = `chat-msg ${sender === myName ? 'mine' : 'other'}`;
+          d.innerHTML = `<span class="chat-sender">${escHtml(sender)}:</span>${escHtml(text)}`;
+          box.appendChild(d); box.scrollTop = box.scrollHeight;
+        }
+        function addChatSystem(t) {
+          const box = document.getElementById('chat-messages'); if (!box) return;
+          const d = document.createElement('div'); d.className = 'chat-msg system'; d.textContent = t;
+          box.appendChild(d); box.scrollTop = box.scrollHeight;
+        }
+
+        // ── Shield ──────────────────────────────────────────────────────────────────
+        function useShield() {
+          document.getElementById('shield-popup').style.display = 'none';
+          send({ action: 'play_shield' });
+        }
+        function declineShield() {
+          document.getElementById('shield-popup').style.display = 'none';
+          send({ action: 'decline_shield' });
+        }
+
+        // ── Exit / lobby ─────────────────────────────────────────────────────────────
+        function showExitModal() { document.getElementById('exit-modal').style.display = 'flex'; }
+        function closeExitModal() { document.getElementById('exit-modal').style.display = 'none'; }
+        function confirmExit() { closeExitModal(); send({ action: 'exit_to_lobby' }); }
+        function playAgain() {
+          document.getElementById('win-screen').style.display = 'none';
+          send({ action: 'replay_game' });
+        }
+        function returnToLobby() { send({ action: 'exit_to_lobby' }); }
+        function showRulesModal() { document.getElementById('rules-modal').style.display = 'flex'; }
+        function closeRulesModal() { document.getElementById('rules-modal').style.display = 'none'; }
+        function goToLobby() {
+          document.getElementById('game').style.display = 'none';
+          document.getElementById('win-screen').style.display = 'none';
+          document.getElementById('lobby').style.display = 'flex';
+          document.getElementById('shield-popup').style.display = 'none';
+          gameState = null; selectedCardIdx = null; pendingTargetAction = null; myReady = false;
+          const rb = document.getElementById('ready-btn');
+          if (rb) { rb.className = 'btn btn-ready'; rb.textContent = '✋ Click to Ready Up'; }
+        }
+
+        // ── Render game ──────────────────────────────────────────────────────────────
+        function renderGame() {
+          const gs = gameState; if (!gs) return;
+          const isMyTurn = gs.current_player === myName;
+          const curPlayer = gs.players.find(p => p.name === myName);
+
+          document.getElementById('deck-count').textContent = gs.deck_count;
+          document.getElementById('discard-total-count').textContent = gs.cards_discarded ?? 0;
+          document.getElementById('reshuffle-count').textContent = gs.reshuffle_count ?? 0;
+          const reshuffleBadge = document.getElementById('reshuffle-badge');
+          if (reshuffleBadge) reshuffleBadge.style.display = (gs.reshuffle_count > 0) ? '' : 'none';
+          document.getElementById('win-target-game').textContent = gs.win_target;
+
+          const ti = document.getElementById('turn-indicator');
+          if (isMyTurn) {
+            ti.className = 'turn-indicator';
+            ti.textContent = `Your Turn${curPlayer?.has_drawn ? ` · ${curPlayer.plays_left} plays left` : ' · Draw first'}`;
+          } else {
+            ti.className = 'turn-indicator not-your-turn';
+            ti.textContent = `${gs.current_player}'s Turn`;
+          }
+
+          // Desks
+          const needsTarget = selectedCardIdx !== null && curPlayer && (() => {
+            const hand = curPlayer.hand || [];
+            const card = hand[selectedCardIdx];
+            return card && (card.type === 'Bad' || card.name === 'Flaked Last Minute' || card.name === 'Group Chat Drama');
+          })();
+
+          document.getElementById('desks-grid').innerHTML = gs.players.map(p => {
+            const isMe = p.name === myName;
+            const desk = p.desk;
+            const isLocked = desk.status === 'Locked';
+            const isTarget = needsTarget && !isMe;
+            const pips = [0, 1, 2].map(j => {
+              let cls = 'pip';
+              if (j < desk.good) cls += isLocked ? ' locked-pip' : ' filled';
+              return `<div class="${cls}"></div>`;
+            }).join('');
+            const maxScore = Math.max(...gs.players.map(x => x.locked_count));
+            const isLeading = p.locked_count > 0 && p.locked_count === maxScore;
+            return `<div class="desk-card${isMe ? ' mine' : ''}${isTarget ? ' targetable' : ''}"
       onclick="${isTarget ? `selectTarget('${escHtml(p.name)}')` : ''}"
       style="${isLocked ? 'border-color:var(--accent4);background:rgba(255,215,0,0.05);' : ''}"
       title="${isTarget ? 'Click to attack this player' : ''}">
@@ -1590,168 +1591,168 @@
       <div class="desk-status">${isLocked ? '<span style="color:var(--accent4);">🔒 Building next…</span>' : `${desk.good}/3 · ${desk.status}`}</div>
       <div class="desk-score${isLeading ? ' leading' : ''}">${p.locked_count}/${gs.win_target} 🔒${isLeading ? ' 👑' : ''}</div>
     </div>`;
-        }).join('');
+          }).join('');
 
-        // Scoreboard sidebar
-        const needed = Math.max(2, Math.floor(gs.total_players / 2) + 1);
-        document.getElementById('players-list').innerHTML = [...gs.players]
-          .sort((a, b) => b.locked_count - a.locked_count)
-          .map(p => {
-            const isActive = gs.current_player === p.name;
-            const isMe = p.name === myName;
-            const votes = (gs.kick_votes[p.name] || []).length;
-            const iVoted = (gs.kick_votes[p.name] || []).includes(myName);
-            const kickSection = !isMe
-              ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+          // Scoreboard sidebar
+          const needed = Math.max(2, Math.floor(gs.total_players / 2) + 1);
+          document.getElementById('players-list').innerHTML = [...gs.players]
+            .sort((a, b) => b.locked_count - a.locked_count)
+            .map(p => {
+              const isActive = gs.current_player === p.name;
+              const isMe = p.name === myName;
+              const votes = (gs.kick_votes[p.name] || []).length;
+              const iVoted = (gs.kick_votes[p.name] || []).includes(myName);
+              const kickSection = !isMe
+                ? `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
              <button class="kick-btn${iVoted ? ' voted' : ''}" onclick="voteKick('${escHtml(p.name)}')">${iVoted ? '✗' : '🔨'}</button>
              ${votes > 0 ? `<div class="vote-count">${votes}/${needed}</div>` : ''}
            </div>` : '';
-            return `<div class="player-row">
+              return `<div class="player-row">
         <div>
           <div class="player-name-label${isActive ? ' active' : ''}">${isActive ? '▶ ' : ''}${escHtml(p.name)}${isMe ? ' (you)' : ''}</div>
           <div style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--accent4);">${p.locked_count}/${gs.win_target} locked</div>
         </div>
         ${kickSection}
       </div>`;
-          }).join('');
+            }).join('');
 
-        // Hand
-        const hand = curPlayer?.hand || [];
-        document.getElementById('hand-count-label').textContent = `${hand.length}/5`;
-        const dn = document.getElementById('discard-notice');
-        if (hand.length > 5 && isMyTurn) {
-          dn.style.display = 'block'; dn.textContent = `⚠ Discard ${hand.length - 5} card(s)`;
-        } else { dn.style.display = 'none'; }
+          // Hand
+          const hand = curPlayer?.hand || [];
+          document.getElementById('hand-count-label').textContent = `${hand.length}/5`;
+          const dn = document.getElementById('discard-notice');
+          if (hand.length > 5 && isMyTurn) {
+            dn.style.display = 'block'; dn.textContent = `⚠ Discard ${hand.length - 5} card(s)`;
+          } else { dn.style.display = 'none'; }
 
-        document.getElementById('hand-cards').innerHTML = hand.map((c, i) => {
-          const desc = c.type === 'Wild' ? WILD_DESC[c.name] || '' : '';
-          return `<div class="card-item type-${c.type}${selectedCardIdx === i ? ' selected-card' : ''}" onclick="selectCard(${i})">
+          document.getElementById('hand-cards').innerHTML = hand.map((c, i) => {
+            const desc = c.type === 'Wild' ? WILD_DESC[c.name] || '' : '';
+            return `<div class="card-item type-${c.type}${selectedCardIdx === i ? ' selected-card' : ''}" onclick="selectCard(${i})">
       <div class="card-type-tag ${c.type}">${c.type}</div>
       <div class="card-name">${escHtml(c.name)}</div>
       ${desc ? `<div class="card-desc">${escHtml(desc)}</div>` : ''}
     </div>`;
-        }).join('');
+          }).join('');
 
-        renderActions(isMyTurn, curPlayer);
+          renderActions(isMyTurn, curPlayer);
 
-        // Log
-        const logDiv = document.getElementById('log-entries');
-        logDiv.innerHTML = [...gs.log].reverse().map(l => `<div class="log-entry">${escHtml(l)}</div>`).join('');
+          // Log
+          const logDiv = document.getElementById('log-entries');
+          logDiv.innerHTML = [...gs.log].reverse().map(l => `<div class="log-entry">${escHtml(l)}</div>`).join('');
 
-        if (gs.phase === 'winner') showWinScreen(gs);
-      }
-
-      function renderActions(isMyTurn, cp) {
-        const bar = document.getElementById('action-bar');
-        if (!isMyTurn || !cp) {
-          bar.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);">Waiting for ${gameState?.current_player}…</span>`;
-          return;
+          if (gs.phase === 'winner') showWinScreen(gs);
         }
-        const needDiscard = (cp.hand || []).length > 5;
-        const cardsPlayed = cp.cards_played || 0;
-        let h = '';
-        if (!cp.has_drawn) {
-          h += `<button class="btn btn-primary" onclick="drawCards()">📦 Draw 2</button>`;
-        } else if (needDiscard) {
-          h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--accent4);">Select card to discard</span>`;
-          if (selectedCardIdx !== null) h += `<button class="btn btn-danger" onclick="discardCard()">🗑 Discard</button>`;
-        } else {
-          if (selectedCardIdx !== null) {
-            const hand = cp.hand || [];
-            const card = hand[selectedCardIdx];
-            const needsTarget = card && (card.type === 'Bad' || card.name === 'Flaked Last Minute' || card.name === 'Group Chat Drama');
-            if (!needsTarget) {
-              h += `<button class="btn btn-primary" onclick="playCard()">▶ Play Card</button>`;
+
+        function renderActions(isMyTurn, cp) {
+          const bar = document.getElementById('action-bar');
+          if (!isMyTurn || !cp) {
+            bar.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);">Waiting for ${gameState?.current_player}…</span>`;
+            return;
+          }
+          const needDiscard = (cp.hand || []).length > 5;
+          const cardsPlayed = cp.cards_played || 0;
+          let h = '';
+          if (!cp.has_drawn) {
+            h += `<button class="btn btn-primary" onclick="drawCards()">📦 Draw 2</button>`;
+          } else if (needDiscard) {
+            h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--accent4);">Select card to discard</span>`;
+            if (selectedCardIdx !== null) h += `<button class="btn btn-danger" onclick="discardCard()">🗑 Discard</button>`;
+          } else {
+            if (selectedCardIdx !== null) {
+              const hand = cp.hand || [];
+              const card = hand[selectedCardIdx];
+              const needsTarget = card && (card.type === 'Bad' || card.name === 'Flaked Last Minute' || card.name === 'Group Chat Drama');
+              if (!needsTarget) {
+                h += `<button class="btn btn-primary" onclick="playCard()">▶ Play Card</button>`;
+              } else {
+                h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--accent2);">👆 Click a player's desk to target them</span>`;
+              }
             } else {
-              h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--accent2);">👆 Click a player's desk to target them</span>`;
+              h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);">Select a card above</span>`;
             }
-          } else {
-            h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);">Select a card above</span>`;
+            if (cardsPlayed >= 1) {
+              h += `<button class="btn btn-ghost" onclick="endTurn()">⏩ End Turn</button>`;
+            } else {
+              h += `<button class="btn btn-ghost" disabled style="opacity:0.35;">⏩ End Turn <span style="font-size:0.68rem;font-weight:400;">(play first)</span></button>`;
+            }
           }
-          if (cardsPlayed >= 1) {
-            h += `<button class="btn btn-ghost" onclick="endTurn()">⏩ End Turn</button>`;
-          } else {
-            h += `<button class="btn btn-ghost" disabled style="opacity:0.35;">⏩ End Turn <span style="font-size:0.68rem;font-weight:400;">(play first)</span></button>`;
+          bar.innerHTML = h;
+        }
+
+        function selectCard(i) {
+          selectedCardIdx = selectedCardIdx === i ? null : i;
+          renderGame();
+        }
+
+        function selectTarget(targetName) {
+          if (selectedCardIdx === null) return;
+          const hand = gameState?.players.find(p => p.name === myName)?.hand || [];
+          const card = hand[selectedCardIdx];
+          if (!card) return;
+          send({ action: 'play_card', card_idx: selectedCardIdx, target_name: targetName });
+          selectedCardIdx = null;
+        }
+
+        function playCard() {
+          if (selectedCardIdx === null) return;
+          const hand = gameState?.players.find(p => p.name === myName)?.hand || [];
+          const card = hand[selectedCardIdx];
+          if (!card) return;
+          // Cards that need a target should use selectTarget via desk click, but Group Chat Drama shows modal
+          if (card.name === 'Group Chat Drama') { showTargetModal(selectedCardIdx, false, true); return; }
+          if (card.type === 'Bad' || card.name === 'Flaked Last Minute') {
+            // Already handled via desk click — remind player
+            alert('Click on an opponent\'s desk to target them!');
+            return;
           }
+          send({ action: 'play_card', card_idx: selectedCardIdx });
+          selectedCardIdx = null;
         }
-        bar.innerHTML = h;
-      }
 
-      function selectCard(i) {
-        selectedCardIdx = selectedCardIdx === i ? null : i;
-        renderGame();
-      }
+        function drawCards() { send({ action: 'draw' }); }
+        function endTurn() { selectedCardIdx = null; send({ action: 'end_turn' }); }
+        function discardCard() { if (selectedCardIdx === null) return; send({ action: 'discard_card', card_idx: selectedCardIdx }); selectedCardIdx = null; }
+        function voteKick(n) { send({ action: 'vote_kick', target: n }); }
 
-      function selectTarget(targetName) {
-        if (selectedCardIdx === null) return;
-        const hand = gameState?.players.find(p => p.name === myName)?.hand || [];
-        const card = hand[selectedCardIdx];
-        if (!card) return;
-        send({ action: 'play_card', card_idx: selectedCardIdx, target_name: targetName });
-        selectedCardIdx = null;
-      }
-
-      function playCard() {
-        if (selectedCardIdx === null) return;
-        const hand = gameState?.players.find(p => p.name === myName)?.hand || [];
-        const card = hand[selectedCardIdx];
-        if (!card) return;
-        // Cards that need a target should use selectTarget via desk click, but Group Chat Drama shows modal
-        if (card.name === 'Group Chat Drama') { showTargetModal(selectedCardIdx, false, true); return; }
-        if (card.type === 'Bad' || card.name === 'Flaked Last Minute') {
-          // Already handled via desk click — remind player
-          alert('Click on an opponent\'s desk to target them!');
-          return;
+        // Target modal (for Group Chat Drama)
+        function showTargetModal(ci, isNuke, isDrama) {
+          pendingTargetAction = { card_idx: ci };
+          const others = (gameState?.players || []).filter(p => p.name !== myName);
+          document.getElementById('target-modal-title').textContent = isDrama ? '🔥 Group Chat Drama' : (isNuke ? '💣 Nuke' : '⚔️ Sabotage');
+          document.getElementById('target-modal-desc').textContent = isDrama
+            ? 'Pick any player — they discard their hand and redraw:'
+            : 'Pick opponent to attack:';
+          document.getElementById('target-list').innerHTML = others.map(p =>
+            `<button class="player-target-btn" onclick="confirmTarget('${escHtml(p.name)}')">${escHtml(p.name)} (${p.hand_count} cards)</button>`).join('');
+          document.getElementById('target-modal').style.display = 'flex';
         }
-        send({ action: 'play_card', card_idx: selectedCardIdx });
-        selectedCardIdx = null;
-      }
+        function closeTargetModal() { document.getElementById('target-modal').style.display = 'none'; pendingTargetAction = null; }
+        function confirmTarget(name) {
+          if (!pendingTargetAction) return;
+          send({ action: 'play_card', card_idx: pendingTargetAction.card_idx, target_name: name });
+          selectedCardIdx = null;
+          closeTargetModal();
+        }
 
-      function drawCards() { send({ action: 'draw' }); }
-      function endTurn() { selectedCardIdx = null; send({ action: 'end_turn' }); }
-      function discardCard() { if (selectedCardIdx === null) return; send({ action: 'discard_card', card_idx: selectedCardIdx }); selectedCardIdx = null; }
-      function voteKick(n) { send({ action: 'vote_kick', target: n }); }
-
-      // Target modal (for Group Chat Drama)
-      function showTargetModal(ci, isNuke, isDrama) {
-        pendingTargetAction = { card_idx: ci };
-        const others = (gameState?.players || []).filter(p => p.name !== myName);
-        document.getElementById('target-modal-title').textContent = isDrama ? '🔥 Group Chat Drama' : (isNuke ? '💣 Nuke' : '⚔️ Sabotage');
-        document.getElementById('target-modal-desc').textContent = isDrama
-          ? 'Pick any player — they discard their hand and redraw:'
-          : 'Pick opponent to attack:';
-        document.getElementById('target-list').innerHTML = others.map(p =>
-          `<button class="player-target-btn" onclick="confirmTarget('${escHtml(p.name)}')">${escHtml(p.name)} (${p.hand_count} cards)</button>`).join('');
-        document.getElementById('target-modal').style.display = 'flex';
-      }
-      function closeTargetModal() { document.getElementById('target-modal').style.display = 'none'; pendingTargetAction = null; }
-      function confirmTarget(name) {
-        if (!pendingTargetAction) return;
-        send({ action: 'play_card', card_idx: pendingTargetAction.card_idx, target_name: name });
-        selectedCardIdx = null;
-        closeTargetModal();
-      }
-
-      function showDeanModal(cards) {
-        document.getElementById('dean-modal-cards').innerHTML = cards.map((c, i) =>
-          `<button class="modal-card-btn" onclick="pickDeanCard(${i})">
+        function showDeanModal(cards) {
+          document.getElementById('dean-modal-cards').innerHTML = cards.map((c, i) =>
+            `<button class="modal-card-btn" onclick="pickDeanCard(${i})">
       <span style="color:var(--${c.type === 'Good' ? 'good' : c.type === 'Bad' ? 'bad' : 'wild'})">[${c.type}]</span> ${escHtml(c.name)}
     </button>`).join('');
-        document.getElementById('dean-modal').style.display = 'flex';
-      }
-      function closeDeanModal() { document.getElementById('dean-modal').style.display = 'none'; }
-      function pickDeanCard(i) { send({ action: 'dean_choice', keep_idx: i }); closeDeanModal(); }
+          document.getElementById('dean-modal').style.display = 'flex';
+        }
+        function closeDeanModal() { document.getElementById('dean-modal').style.display = 'none'; }
+        function pickDeanCard(i) { send({ action: 'dean_choice', keep_idx: i }); closeDeanModal(); }
 
-      function showWinScreen(gs) {
-        document.getElementById('win-title').textContent = gs.winner + ' WINS!';
-        document.getElementById('win-scores').innerHTML = [...gs.players]
-          .sort((a, b) => b.locked_count - a.locked_count)
-          .map(p => `<div class="score-chip${p.name === gs.winner ? ' winner' : ''}">${escHtml(p.name)} — ${p.locked_count} 🔒</div>`).join('');
-        document.getElementById('win-screen').style.display = 'flex';
-      }
+        function showWinScreen(gs) {
+          document.getElementById('win-title').textContent = gs.winner + ' WINS!';
+          document.getElementById('win-scores').innerHTML = [...gs.players]
+            .sort((a, b) => b.locked_count - a.locked_count)
+            .map(p => `<div class="score-chip${p.name === gs.winner ? ' winner' : ''}">${escHtml(p.name)} — ${p.locked_count} 🔒</div>`).join('');
+          document.getElementById('win-screen').style.display = 'flex';
+        }
 
-      function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-    </script>
+        function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      </script>
 </body>
 
 </html>
