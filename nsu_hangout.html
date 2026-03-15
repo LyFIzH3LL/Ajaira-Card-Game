@@ -1393,13 +1393,17 @@
       function connectWS(url) {
         ws = new WebSocket(url);
         ws.onopen = () => {
-          document.getElementById('conn-dot').className = 'conn-dot connected';
-          document.getElementById('conn-status').innerHTML = '<span class="conn-dot connected"></span> Connected';
+          const dot = document.getElementById('conn-dot');
+          const status = document.getElementById('conn-status');
+          if (dot) dot.className = 'conn-dot connected';
+          if (status) status.innerHTML = '<span class="conn-dot connected"></span> Connected';
         };
         ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
         ws.onclose = () => {
-          document.getElementById('conn-dot').className = 'conn-dot disconnected';
-          document.getElementById('conn-status').innerHTML = '<span class="conn-dot disconnected"></span> Disconnected — <a href="#" onclick="location.reload()" style="color:var(--accent)">Reconnect</a>';
+          const dot = document.getElementById('conn-dot');
+          const status = document.getElementById('conn-status');
+          if (dot) dot.className = 'conn-dot disconnected';
+          if (status) status.innerHTML = '<span class="conn-dot disconnected"></span> Disconnected — <a href="#" onclick="location.reload()" style="color:var(--accent)">Reconnect</a>';
           setTimeout(() => connectWS(url), 3000);
         };
         ws.onerror = () => { };

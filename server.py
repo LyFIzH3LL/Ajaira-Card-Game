@@ -744,7 +744,7 @@ async def ws_handler(request):
             return self is other
 
     adapted = WSAdapter(ws)
-    clients[adapted] = {}
+    # Note: client is registered in clients{} only after a successful "join" action
 
     try:
         async for msg in ws:
