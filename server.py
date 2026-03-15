@@ -74,28 +74,36 @@ def build_deck(num_players):
     return deck
 
 
-def recycle_discard(gs):
-    """Shuffle discard into a new draw deck (Endless Semester Rule)."""
-    if gs["discard"]:
-        gs["deck"] = gs["discard"][:]
-        gs["discard"] = []
-        random.shuffle(gs["deck"])
-        gs["reshuffle_count"] = gs.get("reshuffle_count", 0) + 1
-        gs["log"].append(
-            f"♻️ Deck below 3 cards — discard pile ({len(gs['deck'])} cards) reshuffled back in! "
-            f"Reshuffle #{gs['reshuffle_count']}. The hustle never stops.")
+def refill_deck(gs):
+    """Merge discard + used_pile back into the draw deck and reshuffle to full size."""
+    pool = gs["discard"][:] + gs["used_pile"][:]
+    if not pool:
+        return
+    random.shuffle(pool)
+    gs["deck"] = pool
+    gs["discard"] = []
+    gs["used_pile"] = []
+    gs["reshuffle_count"] = gs.get("reshuffle_count", 0) + 1
+    gs["log"].append(
+        f"♻️ Deck below 3 — discard + used cards ({len(gs['deck'])}) reshuffled back in! "
+        f"Reshuffle #{gs['reshuffle_count']}.")
 
 
 def draw_card(gs):
-    """Draw one card, recycling discard when deck drops below 3 cards."""
+    """Draw one card, refilling from discard+used when deck drops below 3."""
     if len(gs["deck"]) < 3:
-        recycle_discard(gs)
+        refill_deck(gs)
     return gs["deck"].pop() if gs["deck"] else None
 
 
 def discard_card(gs, card):
-    """Send a card to the discard pile."""
+    """Send a card to the discard pile (end-of-turn excess, Group Chat Drama, shield)."""
     gs["discard"].append(card)
+
+
+def use_card(gs, card):
+    """Card was consumed by a plan action — goes to used_pile, hidden from players."""
+    gs["used_pile"].append(card)
 
 
 def new_game_state(player_names):
@@ -119,6 +127,7 @@ def new_game_state(player_names):
             "shield_pending": False,   # Miracle Rescheduling out-of-turn flag
         })
     total = len(deck) + sum(len(p["hand"]) for p in players)
+    full_deck_size = len(deck)   # cards remaining in draw pile after dealing
     return {
         "deck": deck,
         "discard": [],
@@ -133,6 +142,9 @@ def new_game_state(player_names):
         # derived from len(discard) — kept for forward compat
         "cards_discarded": 0,
         "reshuffle_count": 0,   # how many times discard was reshuffled back
+        # cards consumed by plan actions (hidden from clients)
+        "used_pile": [],
+        "full_deck_size": full_deck_size,  # target deck size on every reshuffle
     }
 
 
@@ -402,8 +414,9 @@ async def handle_message(ws, raw):
         if shield_idx is None:
             await send_to(ws, {"type": "error", "msg": "You don't have a Miracle Rescheduling card!"})
             return
-        me["hand"].pop(shield_idx)
-        discard_card(gs, pending["card"])
+        shield_card = me["hand"].pop(shield_idx)
+        use_card(gs, shield_card)       # shield card consumed
+        use_card(gs, pending["card"])   # blocked attack card consumed
         gs["pending_shield"] = None
         gs["log"].append(
             f"🛡️ {my_name} blocked the attack with Miracle Rescheduling!")
@@ -529,7 +542,8 @@ async def handle_message(ws, raw):
             if target_p["desk"]["status"] == "Locked":
                 await send_to(ws, {"type": "error", "msg": "Locked desks cannot be sabotaged!"})
                 return
-            hand.pop(card_idx)
+            used = hand.pop(card_idx)
+            use_card(gs, used)
             cur_player["plays_left"] -= 1
             cur_player["cards_played"] += 1
             # Only offer shield if target actually has a Miracle Rescheduling card
@@ -570,7 +584,8 @@ async def handle_message(ws, raw):
             if target_p["desk"]["status"] == "Locked":
                 await send_to(ws, {"type": "error", "msg": "Locked desks cannot be nuked!"})
                 return
-            hand.pop(card_idx)
+            used = hand.pop(card_idx)
+            use_card(gs, used)
             cur_player["plays_left"] -= 1
             cur_player["cards_played"] += 1
             target_has_shield = any(
@@ -630,7 +645,8 @@ async def handle_message(ws, raw):
             for _ in range(min(5, len(gs["deck"]))):
                 top5.append(gs["deck"].pop())
             gs["pending_dean"] = {"cards": top5, "player": my_name}
-            hand.pop(card_idx)
+            used = hand.pop(card_idx)
+            use_card(gs, used)
             cur_player["plays_left"] -= 1
             cur_player["cards_played"] += 1
             gs["log"].append(f"🏛️ {my_name} visited Dean's Office.")
@@ -639,7 +655,8 @@ async def handle_message(ws, raw):
             return
 
         if played:
-            hand.pop(card_idx)
+            used = hand.pop(card_idx)
+            use_card(gs, used)
             cur_player["plays_left"] -= 1
             cur_player["cards_played"] += 1
             # Check if desk now locks

@@ -26,6 +26,32 @@
       --glow: 0 0 20px rgba(127, 255, 111, 0.15);
     }
 
+    body.light-mode::before {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    }
+
+    body.light-mode {
+      --bg: #f4f4f8;
+      --surface: #ffffff;
+      --surface2: #eaeaf2;
+      --border: #d0d0e0;
+      --accent: #2a9a1a;
+      --accent2: #cc2222;
+      --accent3: #7a3fbf;
+      --accent4: #b8860b;
+      --text: #111118;
+      --text2: #555568;
+      --good: #16a34a;
+      --bad: #dc2626;
+      --wild: #7c3aed;
+      --glow: 0 0 20px rgba(42, 154, 26, 0.1);
+    }
+
+    body,
+    body * {
+      transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -1170,6 +1196,9 @@
         <div style="display:flex;gap:0.4rem;">
           <button class="btn btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;margin-top:0;"
             onclick="showRulesModal()">📖 Rules</button>
+          <button class="btn btn-ghost" id="theme-toggle-btn"
+            style="padding:0.35rem 0.7rem;font-size:0.75rem;margin-top:0;" onclick="toggleTheme()"
+            title="Toggle light/dark mode (only you see this)">🌙</button>
           <button class="btn btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.75rem;margin-top:0;"
             onclick="showExitModal()">🚪 Exit</button>
         </div>
@@ -1546,6 +1575,10 @@
         const isMyTurn = gs.current_player === myName;
         const curPlayer = gs.players.find(p => p.name === myName);
 
+        // Sync theme button icon in case it was re-rendered
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) themeBtn.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+
         document.getElementById('deck-count').textContent = gs.deck_count;
         document.getElementById('discard-total-count').textContent = gs.cards_discarded ?? 0;
         document.getElementById('reshuffle-count').textContent = gs.reshuffle_count ?? 0;
@@ -1751,6 +1784,21 @@
       }
 
       function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+      // ── Theme (local only — never sent to server) ─────────────────────────────
+      function toggleTheme() {
+        const isLight = document.body.classList.toggle('light-mode');
+        localStorage.setItem('nsu_theme', isLight ? 'light' : 'dark');
+        const btn = document.getElementById('theme-toggle-btn');
+        if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+      }
+      // Apply saved theme immediately on page load
+      (function () {
+        if (localStorage.getItem('nsu_theme') === 'light') {
+          document.body.classList.add('light-mode');
+          // Button may not exist yet (rendered later), so we re-apply in renderGame too
+        }
+      })();
     </script>
 </body>
 
