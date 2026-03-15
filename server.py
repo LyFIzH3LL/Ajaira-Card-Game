@@ -1,9 +1,8 @@
 import os
-import http
 import asyncio
-import websockets
 import json
 import random
+from aiohttp import web, WSMsgType
 
 GREEN = 'good'
 RED = 'bad'
@@ -709,21 +708,6 @@ async def handle_message(ws, raw):
         return
 
 
-async def handler(ws):
-    try:
-        async for message in ws:
-            await handle_message(ws, message)
-    finally:
-        if ws in clients:
-            del clients[ws]
-            for t in list(kick_votes.keys()):
-                kick_votes[t].discard(next((i["name"]
-                                      for i in clients.values() if True), ""))
-            await broadcast_lobby()
-            if game_state:
-                await broadcast({"type": "state_update"})
-
-
 # ── HTTP + WebSocket server ───────────────────────────────────────────────────
 HTML_FILE = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), "nsu_hangout.html")
@@ -737,27 +721,64 @@ def read_html():
         return b"<h1>Put nsu_hangout.html in the same folder as server.py</h1>"
 
 
-async def process_request(connection, request):
-    if request.headers.get("Upgrade", "").lower() != "websocket":
-        body = read_html()
-        response = (
-            b"HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: "
-            + str(len(body)).encode() + b"\r\nConnection: close\r\n\r\n" + body
-        )
-        connection.transport.write(response)
-        connection.transport.close()
-        raise Exception("Served HTTP")
-    return None
+async def http_handler(request):
+    return web.Response(body=read_html(), content_type="text/html", charset="utf-8")
+
+
+async def ws_handler(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+
+    # Wrap aiohttp WebSocket in an adapter compatible with our handler
+    class WSAdapter:
+        def __init__(self, aio_ws):
+            self._ws = aio_ws
+
+        async def send(self, text):
+            await self._ws.send_str(text)
+
+        def __hash__(self):
+            return id(self._ws)
+
+        def __eq__(self, other):
+            return self is other
+
+    adapted = WSAdapter(ws)
+    clients[adapted] = {}
+
+    try:
+        async for msg in ws:
+            if msg.type == WSMsgType.TEXT:
+                await handle_message(adapted, msg.data)
+            elif msg.type in (WSMsgType.ERROR, WSMsgType.CLOSE):
+                break
+    finally:
+        if adapted in clients:
+            del clients[adapted]
+            await broadcast_lobby()
+            if game_state:
+                await broadcast({"type": "state_update"})
+
+    return ws
 
 
 async def main():
     port = int(os.environ.get("PORT", 12350))
-    async with websockets.serve(handler, "0.0.0.0", port, process_request=process_request):
-        print("=" * 50)
-        print("NSU Hustle & Sabotage — server running!")
-        print(f"\nOpen in browser: http://localhost:{port}")
-        print("=" * 50)
-        await asyncio.Future()
+    app = web.Application()
+    app.router.add_get("/", http_handler)
+    app.router.add_get("/ws", ws_handler)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+
+    print("=" * 50)
+    print("NSU Hustle & Sabotage — server running!")
+    print(f"\nOpen in browser: http://localhost:{port}")
+    print("=" * 50)
+    await asyncio.Future()
+
 
 if __name__ == "__main__":
     if hasattr(asyncio, "WindowsSelectorEventLoopPolicy"):
