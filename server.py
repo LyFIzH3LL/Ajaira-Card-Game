@@ -129,6 +129,12 @@ def new_game_state(player_names):
         })
     total = len(deck) + sum(len(p["hand"]) for p in players)
     full_deck_size = len(deck)   # cards remaining in draw pile after dealing
+    # Auto-draw 2 for the first player so their turn starts ready
+    first = players[0]
+    for _ in range(2):
+        if deck:
+            first["hand"].append(deck.pop())
+    first["has_drawn"] = True
     return {
         "deck": deck,
         "discard": [],
@@ -255,7 +261,7 @@ async def send_to(ws, msg_dict):
 
 
 def advance_turn(gs):
-    """Discard to hand limit, reset player state, and move to the next turn."""
+    """Discard to hand limit, move to next player, and auto-draw 2 cards for them."""
     cur_player = gs["players"][gs["current_turn"]]
     while len(cur_player["hand"]) > 5:
         discard_card(gs, cur_player["hand"].pop())
@@ -263,7 +269,16 @@ def advance_turn(gs):
     cur_player["has_drawn"] = False
     cur_player["cards_played"] = 0
     gs["current_turn"] = (gs["current_turn"] + 1) % len(gs["players"])
-    gs["log"].append(f"➡️ {gs['players'][gs['current_turn']]['name']}'s turn.")
+    next_player = gs["players"][gs["current_turn"]]
+    # Auto-draw 2 cards for the next player
+    drawn = 0
+    for _ in range(2):
+        c = draw_card(gs)
+        if c:
+            next_player["hand"].append(c)
+            drawn += 1
+    next_player["has_drawn"] = True
+    gs["log"].append(f"➡️ {next_player['name']}'s turn. Drew {drawn} card(s).")
 
 
 async def handle_message(ws, raw):
@@ -488,22 +503,6 @@ async def handle_message(ws, raw):
 
     cur_player = gs["players"][gs["current_turn"]]
 
-    # ── DRAW ──────────────────────────────────────────────────────────────────
-    if action == "draw":
-        if cur_player["name"] != my_name:
-            return
-        if cur_player["has_drawn"]:
-            await send_to(ws, {"type": "error", "msg": "Already drew this turn"})
-            return
-        for _ in range(2):
-            c = draw_card(gs)
-            if c:
-                cur_player["hand"].append(c)
-        cur_player["has_drawn"] = True
-        gs["log"].append(f"📦 {my_name} drew 2 cards.")
-        await broadcast({"type": "state_update"})
-        return
-
     # ── PLAY CARD ─────────────────────────────────────────────────────────────
     if action == "play_card":
         if cur_player["name"] != my_name:
@@ -718,6 +717,8 @@ async def handle_message(ws, raw):
         gs["deck"] = cards + gs["deck"]
         gs["pending_dean"] = None
         gs["log"].append(f"🏛️ {my_name} kept a card from Dean's Office.")
+        if cur_player["plays_left"] <= 0:
+            advance_turn(gs)
         await broadcast({"type": "state_update"})
         return
 
@@ -725,9 +726,6 @@ async def handle_message(ws, raw):
     if action == "end_turn":
         cur_player = gs["players"][gs["current_turn"]]
         if cur_player["name"] != my_name:
-            return
-        if not cur_player["has_drawn"]:
-            await send_to(ws, {"type": "error", "msg": "Draw first!"})
             return
         if cur_player.get("cards_played", 0) < 1:
             await send_to(ws, {"type": "error", "msg": "Play at least 1 card before ending your turn!"})

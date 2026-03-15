@@ -1333,7 +1333,7 @@
           <div class="rules-section-title">🔄 Your Turn (3 Steps)</div>
           <div class="turn-step">
             <div class="step-num">1</div>
-            <div class="step-text"><b>Draw</b> 2 cards from the deck.</div>
+            <div class="step-text"><b>2 cards are dealt to you automatically</b> at the start of your turn.</div>
           </div>
           <div class="turn-step">
             <div class="step-num">2</div>
@@ -1413,9 +1413,20 @@
       let lastCurrentPlayer = null;   // track turn changes for audio cue
 
       // ── Turn chime (Web Audio API — no file needed) ───────────────────────────
+      let _audioCtx = null;
+      function getAudioCtx() {
+        if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (_audioCtx.state === 'suspended') _audioCtx.resume();
+        return _audioCtx;
+      }
+      // Unlock audio on first user gesture anywhere on the page
+      document.addEventListener('click', () => getAudioCtx(), { once: true });
+      document.addEventListener('keydown', () => getAudioCtx(), { once: true });
+
       function playTurnChime() {
         try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const ctx = getAudioCtx();
+          if (!ctx) return;
           const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
           notes.forEach((freq, i) => {
             const osc = ctx.createOscillator();
@@ -1628,7 +1639,7 @@
         const ti = document.getElementById('turn-indicator');
         if (isMyTurn) {
           ti.className = 'turn-indicator';
-          ti.textContent = `Your Turn${curPlayer?.has_drawn ? ` · ${curPlayer.plays_left} play${curPlayer.plays_left !== 1 ? 's' : ''} left` : ' · Draw first'}`;
+          ti.textContent = `Your Turn · ${curPlayer?.plays_left ?? 2} play${(curPlayer?.plays_left ?? 2) !== 1 ? 's' : ''} left`;
         } else {
           ti.className = 'turn-indicator not-your-turn';
           ti.textContent = `${gs.current_player}'s Turn`;
@@ -1722,9 +1733,7 @@
         const needDiscard = (cp.hand || []).length > 5;
         const playsLeft = cp.plays_left ?? 2;
         let h = '';
-        if (!cp.has_drawn) {
-          h += `<button class="btn btn-primary" onclick="drawCards()">📦 Draw 2</button>`;
-        } else if (needDiscard) {
+        if (needDiscard) {
           h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--accent4);">Select card to discard</span>`;
           if (selectedCardIdx !== null) h += `<button class="btn btn-danger" onclick="discardCard()">🗑 Discard</button>`;
         } else {
@@ -1780,7 +1789,6 @@
         selectedCardIdx = null;
       }
 
-      function drawCards() { send({ action: 'draw' }); }
       function endTurn() { selectedCardIdx = null; send({ action: 'end_turn' }); }
       function discardCard() { if (selectedCardIdx === null) return; send({ action: 'discard_card', card_idx: selectedCardIdx }); selectedCardIdx = null; }
       function voteKick(n) { send({ action: 'vote_kick', target: n }); }
