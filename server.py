@@ -95,9 +95,8 @@ def draw_card(gs):
 
 
 def discard_card(gs, card):
-    """Send a card to the discard pile and increment the disposed counter."""
+    """Send a card to the discard pile."""
     gs["discard"].append(card)
-    gs["cards_discarded"] = gs.get("cards_discarded", 0) + 1
 
 
 def new_game_state(player_names):
@@ -132,7 +131,8 @@ def new_game_state(player_names):
         "pending_dean": None,
         # {"attacker": name, "target": name, "card": card, "card_idx": int}
         "pending_shield": None,
-        "cards_discarded": 0,   # running total of cards ever sent to discard pile
+        # derived from len(discard) — kept for forward compat
+        "cards_discarded": 0,
         "reshuffle_count": 0,   # how many times discard was reshuffled back
     }
 
@@ -187,7 +187,7 @@ def public_state(gs, viewer_name=None):
         "log": gs["log"][-25:],
         "deck_count": len(gs["deck"]),
         "discard_count": len(gs["discard"]),
-        "cards_discarded": gs.get("cards_discarded", 0),
+        "cards_discarded": len(gs["discard"]),
         "reshuffle_count": gs.get("reshuffle_count", 0),
         "pending_dean": gs.get("pending_dean"),
         "pending_shield": gs.get("pending_shield"),
@@ -724,7 +724,7 @@ async def handler(ws):
                 await broadcast({"type": "state_update"})
 
 
-# ── HTTP + WebSocket on port 12350 ────────────────────────────────────────────
+# ── HTTP + WebSocket server ───────────────────────────────────────────────────
 HTML_FILE = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), "nsu_hangout.html")
 
@@ -751,14 +751,15 @@ async def process_request(connection, request):
 
 
 async def main():
-    async with websockets.serve(handler, "0.0.0.0", 12350, process_request=process_request):
+    port = int(os.environ.get("PORT", 12350))
+    async with websockets.serve(handler, "0.0.0.0", port, process_request=process_request):
         print("=" * 50)
         print("NSU Hustle & Sabotage — server running!")
-        print("\nShare with friends:  http://103.152.106.177:12350")
-        print("Local (same WiFi):   http://192.168.0.122:12350")
+        print(f"\nOpen in browser: http://localhost:{port}")
         print("=" * 50)
         await asyncio.Future()
 
 if __name__ == "__main__":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    if hasattr(asyncio, "WindowsSelectorEventLoopPolicy"):
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
