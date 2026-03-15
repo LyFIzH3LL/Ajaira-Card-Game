@@ -1337,7 +1337,8 @@
           </div>
           <div class="turn-step">
             <div class="step-num">2</div>
-            <div class="step-text"><b>Play at least 1 card</b> (up to 2). You cannot pass.</div>
+            <div class="step-text"><b>Play at least 1 card</b> (up to 2). Turn ends automatically after your 2nd play.
+            </div>
           </div>
           <div class="turn-step">
             <div class="step-num">3</div>
@@ -1409,6 +1410,29 @@
       let ws = null, myName = null, gameState = null;
       let selectedCardIdx = null, pendingTargetAction = null;
       let myReady = false;
+      let lastCurrentPlayer = null;   // track turn changes for audio cue
+
+      // ── Turn chime (Web Audio API — no file needed) ───────────────────────────
+      function playTurnChime() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+          notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            const start = ctx.currentTime + i * 0.13;
+            gain.gain.setValueAtTime(0, start);
+            gain.gain.linearRampToValueAtTime(0.25, start + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+            osc.start(start);
+            osc.stop(start + 0.35);
+          });
+        } catch (e) { /* audio not available */ }
+      }
 
       const WILD_DESC = {
         "Miracle Rescheduling": "Out-of-turn shield vs attacks · or recover 1 Good card on your turn",
@@ -1426,6 +1450,9 @@
           const status = document.getElementById('conn-status');
           if (dot) dot.className = 'conn-dot connected';
           if (status) status.innerHTML = '<span class="conn-dot connected"></span> Connected';
+          // Auto-rejoin with saved name on reconnect / page reload
+          const savedName = localStorage.getItem('nsu_name');
+          if (savedName) send({ action: 'join', name: savedName });
         };
         ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
         ws.onclose = () => {
@@ -1442,12 +1469,14 @@
 
       function handleMessage(msg) {
         if (msg.type === 'error') {
+          localStorage.removeItem('nsu_name');  // clear so reload doesn't retry and loop
           const el = document.getElementById('error-msg');
           if (el) { el.textContent = msg.msg; setTimeout(() => el.textContent = '', 4000); }
           return;
         }
         if (msg.type === 'joined') {
           myName = msg.name; myReady = false;
+          localStorage.setItem('nsu_name', myName);
           document.getElementById('join-section').style.display = 'none';
           document.getElementById('lobby-section').style.display = 'block';
           document.getElementById('lobby-you').textContent = `You: ${myName}`;
@@ -1459,11 +1488,21 @@
           document.getElementById('game').style.display = 'block';
           document.getElementById('win-screen').style.display = 'none';
           document.getElementById('shield-popup').style.display = 'none';
-          selectedCardIdx = null; pendingTargetAction = null;
+          selectedCardIdx = null; pendingTargetAction = null; lastCurrentPlayer = null;
           addChatSystem('🎮 Game started! May the best hustler win.');
           return;
         }
-        if (msg.type === 'state_update') { gameState = msg.state; renderGame(); return; }
+        if (msg.type === 'state_update') {
+          const prev = lastCurrentPlayer;
+          gameState = msg.state;
+          lastCurrentPlayer = msg.state.current_player;
+          // Play chime when it becomes THIS player's turn (not on initial load)
+          if (prev !== null && prev !== myName && msg.state.current_player === myName) {
+            playTurnChime();
+          }
+          renderGame();
+          return;
+        }
         if (msg.type === 'dean_cards') { showDeanModal(msg.cards); return; }
         if (msg.type === 'chat') { addChatMsg(msg.sender, msg.text); return; }
         if (msg.type === 'return_to_lobby') { goToLobby(); return; }
@@ -1551,12 +1590,12 @@
       // ── Exit / lobby ─────────────────────────────────────────────────────────────
       function showExitModal() { document.getElementById('exit-modal').style.display = 'flex'; }
       function closeExitModal() { document.getElementById('exit-modal').style.display = 'none'; }
-      function confirmExit() { closeExitModal(); send({ action: 'exit_to_lobby' }); }
+      function confirmExit() { closeExitModal(); localStorage.removeItem('nsu_name'); send({ action: 'exit_to_lobby' }); }
       function playAgain() {
         document.getElementById('win-screen').style.display = 'none';
         send({ action: 'replay_game' });
       }
-      function returnToLobby() { send({ action: 'exit_to_lobby' }); }
+      function returnToLobby() { localStorage.removeItem('nsu_name'); send({ action: 'exit_to_lobby' }); }
       function showRulesModal() { document.getElementById('rules-modal').style.display = 'flex'; }
       function closeRulesModal() { document.getElementById('rules-modal').style.display = 'none'; }
       function goToLobby() {
@@ -1564,7 +1603,7 @@
         document.getElementById('win-screen').style.display = 'none';
         document.getElementById('lobby').style.display = 'flex';
         document.getElementById('shield-popup').style.display = 'none';
-        gameState = null; selectedCardIdx = null; pendingTargetAction = null; myReady = false;
+        gameState = null; selectedCardIdx = null; pendingTargetAction = null; myReady = false; lastCurrentPlayer = null;
         const rb = document.getElementById('ready-btn');
         if (rb) { rb.className = 'btn btn-ready'; rb.textContent = '✋ Click to Ready Up'; }
       }
@@ -1589,7 +1628,7 @@
         const ti = document.getElementById('turn-indicator');
         if (isMyTurn) {
           ti.className = 'turn-indicator';
-          ti.textContent = `Your Turn${curPlayer?.has_drawn ? ` · ${curPlayer.plays_left} plays left` : ' · Draw first'}`;
+          ti.textContent = `Your Turn${curPlayer?.has_drawn ? ` · ${curPlayer.plays_left} play${curPlayer.plays_left !== 1 ? 's' : ''} left` : ' · Draw first'}`;
         } else {
           ti.className = 'turn-indicator not-your-turn';
           ti.textContent = `${gs.current_player}'s Turn`;
@@ -1681,7 +1720,7 @@
           return;
         }
         const needDiscard = (cp.hand || []).length > 5;
-        const cardsPlayed = cp.cards_played || 0;
+        const playsLeft = cp.plays_left ?? 2;
         let h = '';
         if (!cp.has_drawn) {
           h += `<button class="btn btn-primary" onclick="drawCards()">📦 Draw 2</button>`;
@@ -1699,8 +1738,9 @@
               h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--accent2);">👆 Click a player's desk to target them</span>`;
             }
           } else {
-            h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);">Select a card above</span>`;
+            h += `<span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--text2);">Select a card to play · ${playsLeft} play${playsLeft !== 1 ? 's' : ''} left</span>`;
           }
+          const cardsPlayed = cp.cards_played || 0;
           if (cardsPlayed >= 1) {
             h += `<button class="btn btn-ghost" onclick="endTurn()">⏩ End Turn</button>`;
           } else {

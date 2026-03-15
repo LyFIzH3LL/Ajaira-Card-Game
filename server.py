@@ -17,9 +17,10 @@ BAD_NAMES = [
     "Wi-Fi Died", "CompetenC Crashed", "Kitty Imports Delayed"
 ]
 
-clients = {}   # ws -> {"name": str, "ready": bool}
+clients = {}              # ws -> {"name": str, "ready": bool}
 game_state = None
-kick_votes = {}   # target_name -> set of voter names
+kick_votes = {}           # target_name -> set of voter names
+disconnected_players = set()  # names of in-game players who disconnected (not kicked)
 
 # ── Win target by player count ────────────────────────────────────────────────
 
@@ -253,8 +254,20 @@ async def send_to(ws, msg_dict):
         pass
 
 
+def advance_turn(gs):
+    """Discard to hand limit, reset player state, and move to the next turn."""
+    cur_player = gs["players"][gs["current_turn"]]
+    while len(cur_player["hand"]) > 5:
+        discard_card(gs, cur_player["hand"].pop())
+    cur_player["plays_left"] = 2
+    cur_player["has_drawn"] = False
+    cur_player["cards_played"] = 0
+    gs["current_turn"] = (gs["current_turn"] + 1) % len(gs["players"])
+    gs["log"].append(f"➡️ {gs['players'][gs['current_turn']]['name']}'s turn.")
+
+
 async def handle_message(ws, raw):
-    global game_state, kick_votes
+    global game_state, kick_votes, disconnected_players
     msg = json.loads(raw)
     action = msg.get("action")
     gs = game_state
@@ -268,12 +281,22 @@ async def handle_message(ws, raw):
         if name in [i["name"] for i in clients.values()]:
             await ws.send(json.dumps({"type": "error", "msg": "Name taken"}))
             return
-        if gs and gs["phase"] == "playing":
+        # Allow rejoining if player was in an active game and disconnected (not kicked)
+        is_rejoin = name in disconnected_players
+        if gs and gs["phase"] == "playing" and not is_rejoin:
             await ws.send(json.dumps({"type": "error", "msg": "A game is already in progress."}))
             return
         clients[ws] = {"name": name, "ready": False}
-        await broadcast_lobby()
-        await ws.send(json.dumps({"type": "joined", "name": name}))
+        if is_rejoin:
+            disconnected_players.discard(name)
+            gs["log"].append(f"📡 {name} reconnected!")
+            await ws.send(json.dumps({"type": "joined", "name": name}))
+            await ws.send(json.dumps({"type": "game_started"}))
+            await broadcast({"type": "state_update"})
+            await broadcast_lobby()
+        else:
+            await broadcast_lobby()
+            await ws.send(json.dumps({"type": "joined", "name": name}))
         return
 
     # ── TOGGLE READY ──────────────────────────────────────────────────────────
@@ -307,6 +330,7 @@ async def handle_message(ws, raw):
         names = [i["name"] for i in clients.values()]
         game_state = new_game_state(names)
         kick_votes = {}
+        disconnected_players.clear()
         for info in clients.values():
             info["ready"] = False
         await broadcast({"type": "game_started"})
@@ -323,6 +347,7 @@ async def handle_message(ws, raw):
         names = [i["name"] for i in clients.values()]
         game_state = new_game_state(names)
         kick_votes = {}
+        disconnected_players.clear()
         for info in clients.values():
             info["ready"] = False
         await broadcast({"type": "game_started"})
@@ -342,6 +367,7 @@ async def handle_message(ws, raw):
                 gs["log"].append("Not enough players — game ended.")
                 game_state = None
                 kick_votes = {}
+                disconnected_players.clear()
                 await broadcast({"type": "game_ended"})
             else:
                 gs["current_turn"] = gs["current_turn"] % len(gs["players"])
@@ -376,6 +402,7 @@ async def handle_message(ws, raw):
             if votes >= needed:
                 gs["players"] = [p for p in gs["players"] if p["name"] != target]
                 del kick_votes[target]
+                disconnected_players.discard(target)  # kicked = cannot rejoin
                 gs["log"].append(f"🔨 {target} was kicked!")
                 target_ws = next((w for w, i in clients.items()
                                  if i["name"] == target), None)
@@ -385,6 +412,7 @@ async def handle_message(ws, raw):
                 if len(gs["players"]) < 4:
                     game_state = None
                     kick_votes = {}
+                    disconnected_players.clear()
                     await broadcast({"type": "game_ended"})
                     await broadcast_lobby()
                     return
@@ -571,6 +599,8 @@ async def handle_message(ws, raw):
                 else:
                     gs["log"].append(
                         f"💨 {my_name}'s Bad card hit {target_name}'s empty desk — no effect.")
+                if cur_player["plays_left"] <= 0:
+                    advance_turn(gs)
                 await broadcast({"type": "state_update"})
             return
 
@@ -608,6 +638,8 @@ async def handle_message(ws, raw):
                 desk["status"] = "Empty"
                 gs["log"].append(
                     f"💣 {my_name} NUKED {target_name}'s desk! {good_cleared} Good card(s) swept away. (No shield available)")
+                if cur_player["plays_left"] <= 0:
+                    advance_turn(gs)
                 await broadcast({"type": "state_update"})
             return
 
@@ -666,6 +698,9 @@ async def handle_message(ws, raw):
             if check_win(gs):
                 await broadcast({"type": "state_update"})
                 return
+            # Auto-end turn after 2nd card played
+            if cur_player["plays_left"] <= 0:
+                advance_turn(gs)
         await broadcast({"type": "state_update"})
         return
 
@@ -697,15 +732,7 @@ async def handle_message(ws, raw):
         if cur_player.get("cards_played", 0) < 1:
             await send_to(ws, {"type": "error", "msg": "Play at least 1 card before ending your turn!"})
             return
-        # Discard to 5
-        while len(cur_player["hand"]) > 5:
-            discard_card(gs, cur_player["hand"].pop())
-        cur_player["plays_left"] = 2
-        cur_player["has_drawn"] = False
-        cur_player["cards_played"] = 0
-        gs["current_turn"] = (gs["current_turn"] + 1) % len(gs["players"])
-        gs["log"].append(
-            f"➡️ {gs['players'][gs['current_turn']]['name']}'s turn.")
+        advance_turn(gs)
         await broadcast({"type": "state_update"})
         return
 
@@ -771,7 +798,18 @@ async def ws_handler(request):
                 break
     finally:
         if adapted in clients:
+            name = clients[adapted].get("name")
             del clients[adapted]
+            # If a game is in progress, mark as disconnected so they can rejoin
+            if game_state and game_state["phase"] == "playing" and name:
+                disconnected_players.add(name)
+                game_state["log"].append(
+                    f"📡 {name} disconnected. They can rejoin.")
+                # If it was their turn, skip to next player so game doesn't freeze
+                gs = game_state
+                cur = gs["players"][gs["current_turn"]]
+                if cur["name"] == name:
+                    advance_turn(gs)
             await broadcast_lobby()
             if game_state:
                 await broadcast({"type": "state_update"})
